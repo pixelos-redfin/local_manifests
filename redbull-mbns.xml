@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <project path="vendor/google/redbull-mbns"
+           name="pixelos-redfin/proprietary_vendor_google_redbull-mbns"
+           remote="github"
+           revision="refs/heads/seventeen" />
+</manifest>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <!-- Device -->
+  <project path="device/google/redfin" name="pixelos-redfin/android_device_google_redfin" remote="github" />
+  <project path="device/google/redbull" name="pixelos-redfin/android_device_google_redbull" remote="github" />
+
+  <!-- Kernel -->
+  <project path="kernel/google/redbull" name="pixelos-redfin/android_kernel_google_redbull" remote="github" />
+  <!-- Full history required: the KernelSU-Next version is derived from its commit count -->
+  <project path="kernel/google/redbull/KernelSU-Next" name="KernelSU-Next/KernelSU-Next" remote="github"
+           revision="0b17f24246db5c80c056b92c15bcad2b77f1276e" upstream="legacy" dest-branch="legacy" />
+
+  <!-- Vendor -->
+  <project path="vendor/google/redfin" name="pixelos-redfin/proprietary_vendor_google_redfin" remote="github" />
+
+  <!-- Updater with incremental OTA support and pixelos-redfin feed -->
+  <remove-project name="PixelOS-AOSP/android_packages_apps_Updater" />
+  <project path="packages/apps/Updater" name="pixelos-redfin/android_packages_apps_Updater" remote="github" />
+</manifest>
