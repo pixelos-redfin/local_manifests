@@ -36,6 +36,8 @@ PREV=""
 [ -e "$RELEASES/latest/signed-target_files.zip" ] && PREV=$(readlink -f "$RELEASES/latest")
 mkdir -p "$DEST"
 
+# The device tree builds vbmeta with --flags 3 (verification disabled)
+# unless WITH_AVB=true; a locked bootloader refuses that, so force 0.
 # testkey -> releasekey, platform -> platform, ... comes from -d.
 # APEXes get their own container and payload keys, and every APK signed
 # with a public in-tree key outside build/make/target/product/security is
@@ -54,6 +56,7 @@ done < <(unzip -p "$TF" META/apkcerts.txt \
 echo ">> Signing target_files ($TAG)"
 sign_target_files_apks -o -d "$KEYS" "${args[@]}" \
     --avb_vbmeta_key "$KEYS/avb.pem" --avb_vbmeta_algorithm $AVB_ALGO \
+    --avb_vbmeta_extra_args "--flags 0" \
     --avb_vbmeta_system_key "$KEYS/avb.pem" --avb_vbmeta_system_algorithm $AVB_ALGO \
     --avb_boot_key "$KEYS/avb.pem" --avb_boot_algorithm $AVB_ALGO \
     "$TF" "$DEST/signed-target_files.zip"
@@ -74,6 +77,9 @@ fi
 echo ">> Extracting fastboot images"
 unzip -q -j "$DEST/signed-target_files.zip" \
     IMAGES/boot.img IMAGES/dtbo.img IMAGES/vendor_boot.img IMAGES/vbmeta.img -d "$DEST"
+
+echo ">> Building factory image"
+KEYS=$KEYS "$(dirname "$(readlink -f "$0")")/factory/make_factory.sh" "$DEST"
 
 echo ">> Generating Updater feed"
 feed_args=(generate-ota "$DEST/$NAME" --url "$OTA_REPO_URL/$TAG/$NAME" --version "$VERSION")

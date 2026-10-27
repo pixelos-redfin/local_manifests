@@ -20,9 +20,22 @@ ln -s .repo/local_manifests/scripts/upload_build.sh .
 source build/envsetup.sh
 lunch custom_redfin cp2a user
 m pixelos
-./sign_release.sh          # signed full + incremental OTA, images, feed
+./sign_release.sh          # signed full + incremental OTA, images, factory zip, feed
 ./upload_build.sh          # uploads releases/redfin/latest
 ```
+
+`sign_release.sh` forces vbmeta flags to 0: the device tree disables
+verification unless `WITH_AVB=true`, and such a build never boots with a
+locked bootloader.
+
+## Factory image
+
+`scripts/factory/make_factory.sh <release dir>` (run by `sign_release.sh`)
+builds `redfin-factory-<tag>.zip` with `flash-all.sh`/`flash-all.bat`,
+`avb_pkmd.bin` and the image zip. `flash-all` checks the device, installs the
+PixelOS AVB key, flashes with a wipe and offers to relock. Firmware is not
+included: the Pixel 5 bootloader only accepts Google's packed bootloader and
+radio images, so the phone must be on stock Android 14 (UP1A.231105.001.B2).
 
 Signing keys live in `~/.android-certs` and are never committed.
 Never publish the zips in `out/`: they are signed with the AOSP test key.

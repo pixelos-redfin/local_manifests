@@ -50,6 +50,9 @@ REQUIRED_FILES=(
     "vbmeta.img"
     "$ZIP_BASENAME"
 )
+# Factory image (flash-all installer) from factory/make_factory.sh, if built
+FACTORY_ZIP=$(basename "$(ls "$PRODUCT_DIR"/redfin-factory-*.zip 2>/dev/null | tail -1)" 2>/dev/null || true)
+[ -n "$FACTORY_ZIP" ] && REQUIRED_FILES+=("$FACTORY_ZIP" "$FACTORY_ZIP.sha256")
 
 MISSING=0
 for f in "${REQUIRED_FILES[@]}"; do
@@ -72,13 +75,11 @@ echo ""
 echo "Starting upload to Google Drive (${DEST_FOLDER})..."
 
 # 4. Upload exactly the required files
-rclone copy -P --max-depth 1 \
-    --include "/boot.img" \
-    --include "/dtbo.img" \
-    --include "/vendor_boot.img" \
-    --include "/vbmeta.img" \
-    --include "/$ZIP_BASENAME" \
-    "$PRODUCT_DIR" "$DEST_FOLDER"
+INCLUDES=()
+for f in "${REQUIRED_FILES[@]}"; do
+    INCLUDES+=(--include "/$f")
+done
+rclone copy -P --max-depth 1 "${INCLUDES[@]}" "$PRODUCT_DIR" "$DEST_FOLDER"
 
 echo ""
 echo "=========================================================="
