@@ -20,7 +20,7 @@ ln -s .repo/local_manifests/scripts/upload_build.sh .
 source build/envsetup.sh
 lunch custom_redfin cp2a user
 m pixelos
-./sign_release.sh          # signed full + incremental OTA, images, factory zip, feed
+./sign_release.sh          # signed full + incremental OTA, images, factory zip, feed (incremental only)
 ./upload_build.sh          # uploads releases/redfin/latest
 ```
 
@@ -39,3 +39,9 @@ radio images, so the phone must be on stock Android 14 (UP1A.231105.001.B2).
 
 Signing keys live in `~/.android-certs` and are never committed.
 Never publish the zips in `out/`: they are signed with the AOSP test key.
+
+## Updater feed
+
+`pixelos-ota/API/updater/redfin.json` only carries the incremental OTA from
+the previous release (a GitHub release asset; full OTAs exceed the 2 GiB
+limit). Full installs use the factory image.

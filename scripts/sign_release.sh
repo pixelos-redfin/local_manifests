@@ -81,10 +81,14 @@ unzip -q -j "$DEST/signed-target_files.zip" \
 echo ">> Building factory image"
 KEYS=$KEYS "$(dirname "$(readlink -f "$0")")/factory/make_factory.sh" "$DEST"
 
-echo ">> Generating Updater feed"
-feed_args=(generate-ota "$DEST/$NAME" --url "$OTA_REPO_URL/$TAG/$NAME" --version "$VERSION")
-[ -n "$INC" ] && feed_args+=(--incremental-artifact "$DEST/$INC" --incremental-url "$OTA_REPO_URL/$TAG/$INC")
-python3 -I "$TOP/packages/apps/Updater/tools/pixelos_feed.py" "${feed_args[@]}" --output "$DEST/redfin.json"
+# The feed only carries the incremental from the previous release: full
+# OTAs exceed GitHub's 2 GiB release asset limit and go out via the
+# factory image instead.
+if [ -n "$INC" ]; then
+    echo ">> Generating Updater feed"
+    python3 -I "$TOP/packages/apps/Updater/tools/pixelos_feed.py" generate-ota "$DEST/$INC" \
+        --url "$OTA_REPO_URL/$TAG/$INC" --version "$VERSION" --output "$DEST/redfin.json"
+fi
 
 ln -sfn "$TAG" "$RELEASES/latest"
 
@@ -92,6 +96,10 @@ echo
 echo "Release $TAG ready in $DEST"
 ls -lh "$DEST"
 echo
-echo "Publish: gh release create $TAG -R pixelos-redfin/pixelos-ota $DEST/$NAME${INC:+ $DEST/$INC}"
-echo "         cp $DEST/redfin.json ../pixelos-ota/API/updater/redfin.json, update changelog, push"
+if [ -n "$INC" ]; then
+    echo "Publish: gh release create $TAG -R pixelos-redfin/pixelos-ota $DEST/$INC"
+    echo "         cp $DEST/redfin.json ../pixelos-ota/API/updater/redfin.json, update changelog, push"
+else
+    echo "No previous release: nothing for the Updater feed (incremental only)."
+fi
 echo "Upload:  ./upload_build.sh $DEST"
