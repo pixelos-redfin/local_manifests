@@ -12,6 +12,7 @@ repo sync -c --no-tags
 git -C kernel/google/redbull/KernelSU-Next fetch --unshallow --tags github
 ln -s .repo/local_manifests/scripts/sign_release.sh .
 ln -s .repo/local_manifests/scripts/upload_build.sh .
+ln -s .repo/local_manifests/scripts/publish_update.sh .
 ```
 
 ## Release
@@ -22,6 +23,8 @@ lunch custom_redfin cp2a user
 m pixelos
 ./sign_release.sh          # signed full + incremental OTA, images, factory zip, feed (incremental only)
 ./upload_build.sh          # uploads releases/redfin/latest
+# write releases/redfin/latest/changelog.md (replaces the previous one)
+./publish_update.sh        # GitHub release + Updater feed + changelog
 ```
 
 `sign_release.sh` forces vbmeta flags to 0: the device tree disables
@@ -44,4 +47,5 @@ Never publish the zips in `out/`: they are signed with the AOSP test key.
 
 `pixelos-ota/API/updater/redfin.json` only carries the incremental OTA from
 the previous release (a GitHub release asset; full OTAs exceed the 2 GiB
-limit). Full installs use the factory image.
+limit). Full installs use the factory image. Every update replaces
+`changelogs/redfin.md`; `publish_update.sh` refuses to publish without a new one.

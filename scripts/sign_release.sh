@@ -97,8 +97,7 @@ echo "Release $TAG ready in $DEST"
 ls -lh "$DEST"
 echo
 if [ -n "$INC" ]; then
-    echo "Publish: gh release create $TAG -R pixelos-redfin/pixelos-ota $DEST/$INC"
-    echo "         cp $DEST/redfin.json ../pixelos-ota/API/updater/redfin.json, update changelog, push"
+    echo "Publish: write $DEST/changelog.md, then ./publish_update.sh $DEST"
 else
     echo "No previous release: nothing for the Updater feed (incremental only)."
 fi
