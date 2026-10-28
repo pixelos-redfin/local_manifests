@@ -17,6 +17,10 @@
   <remove-project name="PixelOS-AOSP/android_frameworks_base" />
   <project path="frameworks/base" name="pixelos-redfin/android_frameworks_base" remote="github" groups="pdk-cw-fs,pdk-fs,sysui-studio" />
 
+  <!-- Dark theme boot animation -->
+  <remove-project name="PixelOS-AOSP/android_vendor_custom" />
+  <project path="vendor/custom" name="pixelos-redfin/android_vendor_custom" remote="github" />
+
   <!-- Updater with incremental OTA support and pixelos-redfin feed -->
   <remove-project name="PixelOS-AOSP/android_packages_apps_Updater" />
   <project path="packages/apps/Updater" name="pixelos-redfin/android_packages_apps_Updater" remote="github" />
