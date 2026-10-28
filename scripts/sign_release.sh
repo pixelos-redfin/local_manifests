@@ -105,3 +105,11 @@ else
     echo "No previous release: nothing for the Updater feed (incremental only)."
 fi
 echo "Upload:  ./upload_build.sh $DEST"
+
+msg="🔏 PixelOS redfin $TAG signed
+Full OTA: $(du -h "$DEST/$NAME" | cut -f1)"
+[ -n "$INC" ] && msg+="
+Delta from $PREV_TAG: $(du -h "$DEST/$INC" | cut -f1)"
+msg+="
+Next: changelog.md, publish_update.sh, upload_build.sh"
+"$(dirname "$(readlink -f "$0")")/tg_notify.py" "$msg"

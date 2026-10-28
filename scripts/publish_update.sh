@@ -41,3 +41,7 @@ git -C "$OTA" commit -q -m "redfin: Push $TAG incremental"
 git -C "$OTA" push -q origin HEAD:seventeen
 
 echo "Published $TAG: https://github.com/$REPO/releases/tag/$TAG"
+
+"$(dirname "$(readlink -f "$0")")/tg_notify.py" "🚀 PixelOS redfin $TAG is live in the Updater
+$INC
+https://github.com/$REPO/releases/tag/$TAG" "$LOG"

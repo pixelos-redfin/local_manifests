@@ -92,4 +92,15 @@ rclone ls "$DEST_FOLDER"
 
 echo ""
 echo "Generating shareable link for ROM zip..."
-rclone link "${DEST_FOLDER}/${ZIP_BASENAME}" || true
+ROM_LINK=$(rclone link "${DEST_FOLDER}/${ZIP_BASENAME}" 2>/dev/null || true)
+echo "$ROM_LINK"
+
+msg="☁️ PixelOS redfin ${DATE_TAG} uploaded to Google Drive
+Full OTA: ${ROM_LINK:-no link}"
+if [ -n "$FACTORY_ZIP" ]; then
+    FACTORY_LINK=$(rclone link "${DEST_FOLDER}/${FACTORY_ZIP}" 2>/dev/null || true)
+    msg+="
+Factory image: ${FACTORY_LINK:-no link}
+SHA-256: $(cut -d' ' -f1 "$PRODUCT_DIR/$FACTORY_ZIP.sha256")"
+fi
+"$(dirname "$(readlink -f "$0")")/tg_notify.py" "$msg"
