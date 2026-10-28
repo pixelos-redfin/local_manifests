@@ -22,11 +22,11 @@ die() { echo "Error: $*" >&2; exit 1; }
 [ -f "$KEYS/releasekey.pk8" ] || die "no keys in $KEYS"
 [ -f "$TF" ] || die "no target_files at $TF"
 
-# The PixelOS package of the same build gives us the release name.
-NAME=$(find "$OUT" -maxdepth 1 -name 'PixelOS_redfin-*.zip' -printf '%T@ %f\n' | sort -n | tail -1 | cut -d' ' -f2-)
-[ -n "$NAME" ] || die "no PixelOS_redfin-*.zip in $OUT"
-[ "$OUT/$NAME" -nt "$TF" ] || die "$NAME is older than target_files, rebuild first"
+# The release name comes from target_files itself: `m pixelos` does not
+# always repack the zip, so it may hold an older build than out/.
+NAME=$(unzip -p "$TF" PRODUCT/etc/build.prop | sed -n 's/^ro.custom.version=//p').zip
 [[ "$NAME" =~ ^PixelOS_redfin-([0-9.]+)-([0-9]{8}-[0-9]{4})\.zip$ ]] || die "unexpected name $NAME"
+[ "$TF" -nt "$OUT/system/build.prop" ] || die "target_files is older than out/, run m target-files-package"
 VERSION=${BASH_REMATCH[1]}
 TAG=${BASH_REMATCH[2]}
 
