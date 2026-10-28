@@ -70,7 +70,10 @@ if [ -n "$PREV" ]; then
     PREV_TAG=$(basename "$PREV")
     INC=PixelOS_redfin-$VERSION-$PREV_TAG-to-$TAG-incremental.zip
     echo ">> Building incremental OTA from $PREV_TAG"
+    # vbmeta goes in whole: phones may carry a differently built but
+    # equivalent vbmeta (e.g. the lockfix one), and a patch would fail.
     ota_from_target_files -k "$KEYS/releasekey" -i "$PREV/signed-target_files.zip" \
+        --full_ota_partitions vbmeta,vbmeta_system \
         "$DEST/signed-target_files.zip" "$DEST/$INC"
 fi
 
