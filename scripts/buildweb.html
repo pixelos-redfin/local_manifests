@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PixelOS Build</title>
+<style>
+:root {
+  --bg: #f6f7f9; --card: #fff; --text: #1b1f24; --dim: #667085; --line: #e3e6ea;
+  --accent: #2f6fde; --ok: #1a8a4a; --bad: #c8322f; --warn: #b26b00; --track: #e8ecf2;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1216; --card: #171b21; --text: #e6e9ee; --dim: #8b95a5; --line: #262c35;
+    --accent: #5b9bff; --ok: #3ccf7a; --bad: #ff6b66; --warn: #f0a83a; --track: #232a33;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+main { max-width: 1000px; margin: 0 auto; padding: 20px 16px 40px; }
+header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+h1 { font-size: 20px; margin: 0; }
+h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--dim); margin: 0 0 10px; }
+.conn { font-size: 13px; color: var(--dim); margin-left: auto; }
+.conn::before { content: "●"; margin-right: 5px; color: var(--ok); }
+.conn.off::before { color: var(--bad); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+.top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.name { font-family: var(--mono); font-size: 14px; word-break: break-all; }
+.badge { font-size: 12px; font-weight: 600; padding: 2px 9px; border-radius: 99px; color: #fff; background: var(--accent); }
+.badge.ok { background: var(--ok); } .badge.failed { background: var(--bad); }
+.badge.stopped, .badge.none { background: var(--dim); }
+.badge.running { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .55; } }
+.pct { font-size: 44px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 12px 0 4px; }
+.barwrap { height: 14px; background: var(--track); border-radius: 99px; overflow: hidden; }
+.bar { height: 100%; width: 0; background: var(--accent); border-radius: 99px; transition: width .8s ease; }
+.bar.ok { background: var(--ok); } .bar.failed { background: var(--bad); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 14px; }
+.stat .k { font-size: 12px; color: var(--dim); }
+.stat .v { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.target { margin-top: 12px; font-family: var(--mono); font-size: 12.5px; color: var(--dim); word-break: break-all; }
+svg { width: 100%; height: 140px; display: block; }
+.errors .e { font-family: var(--mono); font-size: 12.5px; color: var(--bad); white-space: pre-wrap; word-break: break-all;
+  border-left: 3px solid var(--bad); padding: 4px 8px; margin: 6px 0; background: color-mix(in srgb, var(--bad) 7%, transparent); }
+pre.log { margin: 0; font-family: var(--mono); font-size: 12px; line-height: 1.5; max-height: 360px; overflow: auto;
+  white-space: pre-wrap; word-break: break-all; color: var(--dim); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td { padding: 7px 4px; border-top: 1px solid var(--line); }
+td.n { font-family: var(--mono); font-size: 13px; word-break: break-all; }
+td.r { text-align: right; color: var(--dim); white-space: nowrap; font-variant-numeric: tabular-nums; }
+a { color: var(--accent); text-decoration: none; }
+.hidden { display: none; }
+.empty { color: var(--dim); }
+</style>
+</head>
+<body>
+<main>
+  <header><h1>PixelOS build · redfin</h1><span id="conn" class="conn off">connecting</span></header>
+
+  <section class="card" id="current">
+    <div class="top"><span class="badge none" id="badge">—</span><span class="name" id="name">no build log yet</span></div>
+    <div class="pct" id="pct">–</div>
+    <div class="barwrap"><div class="bar" id="bar"></div></div>
+    <div class="stats">
+      <div class="stat"><div class="k">Phase</div><div class="v" id="phase">–</div></div>
+      <div class="stat"><div class="k">Steps</div><div class="v" id="steps">–</div></div>
+      <div class="stat"><div class="k">Elapsed</div><div class="v" id="elapsed">–</div></div>
+      <div class="stat"><div class="k">ETA</div><div class="v" id="eta">–</div></div>
+      <div class="stat"><div class="k">Finish at</div><div class="v" id="finish">–</div></div>
+      <div class="stat"><div class="k">Speed</div><div class="v" id="rate">–</div></div>
+    </div>
+    <div class="target" id="target"></div>
+  </section>
+
+  <section class="card errors hidden" id="errcard"><h2>Errors</h2><div id="errors"></div></section>
+
+  <section class="card"><h2>Steps over time (this phase)</h2><svg id="chart" viewBox="0 0 600 140" preserveAspectRatio="none"></svg></section>
+
+  <section class="card"><h2>Log tail</h2><pre class="log" id="log"></pre></section>
+
+  <section class="card"><h2>Recent builds</h2><table id="history"></table></section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const dur = s => {
+  if (s == null || !isFinite(s)) return "–";
+  s = Math.max(0, Math.round(s));
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), sec = s % 60;
+  return h ? `${h}h ${String(m).padStart(2, "0")}m` : `${m}m ${String(sec).padStart(2, "0")}s`;
+};
+const clock = t => new Date(t * 1000).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"});
+const day = t => new Date(t * 1000).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"});
+const label = {ok: "built", failed: "failed", running: "running", stopped: "stopped"};
+let following = true;
+$("log").addEventListener("scroll", e => {
+  const el = e.target; following = el.scrollTop + el.clientHeight >= el.scrollHeight - 20;
+});
+
+function chart(points) {
+  const svg = $("chart");
+  if (!points || points.length < 2) {
+    svg.innerHTML = `<text x="300" y="75" text-anchor="middle" fill="currentColor" opacity=".45" font-size="13">waiting for progress samples</text>`;
+    return;
+  }
+  const maxT = points[points.length - 1][0] || 1;
+  const min = points[0][1], max = Math.max(points[points.length - 1][1], min + 1);
+  const xy = points.map(([t, d]) => [t / maxT * 600, 132 - (d - min) / (max - min) * 124]);
+  const line = xy.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ");
+  svg.innerHTML =
+    `<polygon points="0,132 ${line} 600,132" fill="var(--accent)" opacity=".12"/>` +
+    `<polyline points="${line}" fill="none" stroke="var(--accent)" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+}
+
+function render(s) {
+  if (!s.log) return;
+  const status = s.status;
+  $("badge").className = "badge " + status;
+  $("badge").textContent = label[status] || status;
+  $("name").textContent = s.log;
+  document.title = status === "running" ? `${s.pct}% · PixelOS build` : `${label[status] || status} · PixelOS build`;
+  $("pct").textContent = status === "ok" ? "100%" : (s.total ? s.pct + "%" : "–");
+  $("bar").style.width = (status === "ok" ? 100 : s.pct) + "%";
+  $("bar").className = "bar " + status;
+  $("phase").textContent = s.phase;
+  $("steps").textContent = s.total ? `${s.done.toLocaleString()} / ${s.total.toLocaleString()}` : "–";
+  const end = status === "running" ? s.now : s.updated;
+  $("elapsed").textContent = dur(end - s.started);
+  $("eta").textContent = status === "running" ? dur(s.eta) : "–";
+  $("finish").textContent = status === "running" && s.eta ? clock(s.now + s.eta) : (status === "ok" ? "done " + clock(s.updated) : "–");
+  $("rate").textContent = s.rate ? `${(s.rate * 60).toFixed(0)} steps/min` : "–";
+  $("target").textContent = s.target || "";
+  $("errcard").classList.toggle("hidden", !s.errors.length);
+  $("errors").innerHTML = "";
+  for (const e of s.errors) { const d = document.createElement("div"); d.className = "e"; d.textContent = e; $("errors").append(d); }
+  const log = $("log");
+  log.textContent = s.lines.join("\n");
+  if (following) log.scrollTop = log.scrollHeight;
+  chart(s.chart);
+  const tb = $("history"); tb.innerHTML = "";
+  for (const h of s.history) {
+    const tr = document.createElement("tr");
+    const took = h.took || (h.result === "running" ? "…" : dur(h.ended - h.started));
+    tr.innerHTML = `<td><span class="badge ${h.result}">${label[h.result] || h.result}</span></td>` +
+      `<td class="n"><a target="_blank"></a></td><td class="r">${day(h.started)}</td><td class="r">${took}</td>`;
+    const a = tr.querySelector("a"); a.textContent = h.name; a.href = "/log/" + encodeURIComponent(h.name);
+    tb.append(tr);
+  }
+}
+
+function connect() {
+  const es = new EventSource("/events");
+  es.onopen = () => { $("conn").className = "conn"; $("conn").textContent = "live"; };
+  es.onmessage = e => render(JSON.parse(e.data));
+  es.onerror = () => { $("conn").className = "conn off"; $("conn").textContent = "reconnecting"; };
+}
+connect();
+</script>
+</body>
+</html>

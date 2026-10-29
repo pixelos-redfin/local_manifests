@@ -33,6 +33,16 @@ locked bootloader.
 
 ## Build progress
 
+`scripts/buildweb.py` serves a live web page of the newest build log (progress bar,
+phase, steps, ETA and finish time, steps-over-time chart, errors, log tail, recent
+builds with full logs). It listens on `127.0.0.1:8095` only; open it through a tunnel:
+
+```bash
+ssh -N -L 8095:127.0.0.1:8095 <user>@<build server>    # then http://localhost:8095
+```
+
+Kept running from crontab: `*/5 * * * * flock -n ~/.cache/buildweb.lock …/scripts/buildweb.py >> ~/logs/buildweb.log 2>&1`.
+
 `scripts/buildwatch.sh [log]` shows a live progress bar (percent, steps, ETA from
 the measured rate, current target) for a build logged with `m … > log 2>&1`;
 `--events` prints one line per 10% and on errors/finish, `--once` the current state.
