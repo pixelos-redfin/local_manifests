@@ -34,7 +34,7 @@ finished() {
     local end
     end=$(tail -c 4000 "$log" | grep -aE '#### (build completed successfully|failed to build some targets)' | tail -1)
     case "$end" in
-        *successfully*) echo "ok $(sed -nE 's/.*\(([^)]*)\).*/\1/p' <<<"$end")" ;;
+        *successfully*) echo "ok $(grep -oE '[0-9]+(:[0-9]+)+' <<<"$end" | head -1)" ;;
         *failed*) echo failed ;;
     esac
 }
