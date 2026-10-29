@@ -53,6 +53,15 @@ REQUIRED_FILES=(
 # Factory image (flash-all installer) from factory/make_factory.sh, if built
 FACTORY_ZIP=$(basename "$(ls "$PRODUCT_DIR"/redfin-factory-*.zip 2>/dev/null | tail -1)" 2>/dev/null || true)
 [ -n "$FACTORY_ZIP" ] && REQUIRED_FILES+=("$FACTORY_ZIP" "$FACTORY_ZIP.sha256")
+# Installation guides (INSTALL_<lang>.md), if written for this release
+for g in "$PRODUCT_DIR"/INSTALL_*.md; do
+    [ -f "$g" ] || continue
+    if grep -q '{[A-Z_]*}' "$g"; then
+        echo "Error: $(basename "$g") still has template placeholders"
+        exit 1
+    fi
+    REQUIRED_FILES+=("$(basename "$g")")
+done
 
 MISSING=0
 for f in "${REQUIRED_FILES[@]}"; do
