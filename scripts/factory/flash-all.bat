@@ -11,9 +11,17 @@ SET TAG=@TAG@
 SET IMAGE=image-redfin-%TAG%.zip
 
 WHERE fastboot >NUL 2>&1 || (ECHO Error: fastboot not found. Install Android platform-tools and add them to PATH. & GOTO :fail)
-SET FBVER=0
-FOR /F "tokens=3 delims=. " %%v IN ('fastboot --version ^| FINDSTR /B "fastboot version"') DO SET FBVER=%%v
-IF !FBVER! LSS 35 (ECHO Error: fastboot is too old ^(!FBVER!^). Update Android platform-tools to 35 or newer. & GOTO :fail)
+:: Old fastboot builds print a git hash instead of a number ("fastboot version
+:: e5c5d8ad3f7f-android"), which a plain LSS compares as text and lets through.
+SET FBVER=
+SET FBLINE=
+SET FBPATH=
+FOR /F "delims=" %%l IN ('fastboot --version 2^>NUL ^| FINDSTR /B /C:"fastboot version"') DO IF NOT DEFINED FBLINE SET "FBLINE=%%l"
+FOR /F "tokens=3 delims=. " %%v IN ("!FBLINE!") DO SET FBVER=%%v
+ECHO %FBVER%| FINDSTR /R /X "[0-9][0-9]*" >NUL || SET FBVER=0
+FOR /F "delims=" %%p IN ('WHERE fastboot') DO IF NOT DEFINED FBPATH SET "FBPATH=%%p"
+ECHO Using !FBPATH! ^(!FBLINE!^)
+IF !FBVER! LSS 35 (ECHO Error: this fastboot is too old. Install Android platform-tools 35 or newer and make sure it comes first in PATH. & GOTO :fail)
 FOR %%f IN (%IMAGE% avb_pkmd.bin) DO IF NOT EXIST "%%f" (ECHO Error: missing %%f. Extract the whole factory zip first. & GOTO :fail)
 
 ECHO PixelOS %TAG% for Pixel 5 (redfin)
