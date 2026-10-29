@@ -41,6 +41,9 @@ builds with full logs). It listens on `127.0.0.1:8095` only; open it through a t
 ssh -N -L 8095:127.0.0.1:8095 <user>@<build server>    # then http://localhost:8095
 ```
 
+`scripts/build_snapshot.py out.json` writes a compact snapshot of that state for the
+claude.ai "Redfin build" artifact, whose page reads it from its database.
+
 Kept running from crontab: `*/5 * * * * flock -n ~/.cache/buildweb.lock …/scripts/buildweb.py >> ~/logs/buildweb.log 2>&1`.
 
 `scripts/buildwatch.sh [log]` shows a live progress bar (percent, steps, ETA from
