@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # Publish a signed release's incremental OTA to the Updater feed together
 # with its changelog. Write the changelog first to <release dir>/changelog.md;
-# every update must replace the previous one.
+# every update must replace the previous one. Installation guides in
+# <release dir>/INSTALL_<lang>.md are attached to the GitHub release and
+# shown in its notes; the Updater changelog stays the changelog only.
 # Usage: publish_update.sh [release dir]   (default: $RELEASES/latest)
 set -euo pipefail
 
@@ -25,8 +27,24 @@ CHANGELOG=$OTA/API/updater/changelogs/redfin.md
 git -C "$OTA" pull -q --ff-only
 cmp -s "$LOG" "$CHANGELOG" && die "$LOG is the previous changelog, write the one for $TAG"
 
+NOTES=$(mktemp)
+trap 'rm -f "$NOTES"' EXIT
+cp "$LOG" "$NOTES"
+GUIDES=()
+for g in "$DEST"/INSTALL_*.md; do
+    [ -f "$g" ] || continue
+    grep -q '{[A-Z_]*}' "$g" && die "$(basename "$g") still has template placeholders"
+    GUIDES+=("$g")
+    lang=$(basename "$g" .md); lang=${lang#INSTALL_}
+    case $lang in
+        ru) summary="Инструкция по установке (русский)" ;;
+        *) summary="Installation guide ($lang)" ;;
+    esac
+    printf '\n\n<details>\n<summary>%s</summary>\n\n%s\n\n</details>\n' "$summary" "$(cat "$g")" >> "$NOTES"
+done
+
 echo ">> Creating GitHub release $TAG"
-gh release create "$TAG" -R "$REPO" --title "$TAG" --notes-file "$LOG" "$DEST/$INC"
+gh release create "$TAG" -R "$REPO" --title "$TAG" --notes-file "$NOTES" "$DEST/$INC" "${GUIDES[@]}"
 
 echo ">> Checking the download"
 url=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))[0]["files"][0]["url"])' "$DEST/redfin.json")
