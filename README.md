@@ -31,6 +31,18 @@ m pixelos
 verification unless `WITH_AVB=true`, and such a build never boots with a
 locked bootloader.
 
+## Build progress
+
+`scripts/buildwatch.sh [log]` shows a live progress bar (percent, steps, ETA from
+the measured rate, current target) for a build logged with `m … > log 2>&1`;
+`--events` prints one line per 10% and on errors/finish, `--once` the current state.
+Without a log it picks the newest in `~/telegram_bot/logs` or `~/logs`.
+
+```bash
+ln -s .repo/local_manifests/scripts/buildwatch.sh buildwatch
+m pixelos > ~/logs/build.log 2>&1 &  ./buildwatch ~/logs/build.log
+```
+
 ## Upstream check
 
 `scripts/check_upstream.sh` compares the PixelOS-AOSP forks (frameworks_base,
