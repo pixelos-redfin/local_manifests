@@ -60,6 +60,7 @@ if [ ! -s "$CHANGELOG" ]; then
     exit 1
 fi
 for other in "$(dirname "$PRODUCT_DIR")"/*/changelog.md; do
+    other=$(readlink -f "$other")   # skip the latest symlink and this release
     if [ "$other" != "$CHANGELOG" ] && cmp -s "$other" "$CHANGELOG"; then
         echo "Error: $CHANGELOG is the changelog of $(basename "$(dirname "$other")"), write a new one"
         exit 1
