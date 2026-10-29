@@ -4,8 +4,10 @@
 #   buildwatch.sh [LOG]            live progress bar, redrawn every 2s (Ctrl-C to quit)
 #   buildwatch.sh --events [LOG]   one line per 10% step, per error and at the end (for logs/monitors)
 #   buildwatch.sh --once [LOG]     print the current state once
+#   buildwatch.sh --status         one short line for the Claude Code status line:
+#                                  the running build, or the result for 10 min after it ends
 #
-# Without LOG, the newest *.log in ~/telegram_bot/logs and ~/logs is used.
+# Without LOG, the newest of ~/telegram_bot/logs/*.log and ~/logs/build-*.log is used.
 # Soong's own "remaining" estimate is often nonsense, so the ETA here comes
 # from the measured rate.
 
@@ -15,13 +17,18 @@ mode=follow
 case "${1:-}" in
     --events) mode=events; shift ;;
     --once) mode=once; shift ;;
+    --status) mode=status; shift ;;
 esac
 
 log="${1:-}"
 if [ -z "$log" ]; then
-    log=$(ls -t ~/telegram_bot/logs/*.log ~/logs/*.log 2>/dev/null | head -1)
+    log=$(ls -t ~/telegram_bot/logs/*.log ~/logs/build-*.log 2>/dev/null | head -1)
 fi
-[ -n "$log" ] && [ -f "$log" ] || { echo "buildwatch: no build log found" >&2; exit 1; }
+if [ -z "$log" ] || [ ! -f "$log" ]; then
+    [ "$mode" = status ] && exit 0
+    echo "buildwatch: no build log found" >&2
+    exit 1
+fi
 
 # Prints: percent done total target
 progress() {
@@ -74,6 +81,44 @@ line() {
 }
 
 case $mode in
+status)
+    # Called every few seconds: keep it cheap and quiet. The ETA needs a rate,
+    # so remember when each phase was first seen.
+    now=$(date +%s)
+    age=$((now - $(stat -c %Y "$log")))
+    f=$(finished)
+    name=$(basename "$log" .log)
+    if [ -n "$f" ]; then
+        [ "$age" -gt 600 ] && exit 0
+        case $f in
+            ok*) printf '\033[32m✅ %s built (%s)\033[0m\n' "$name" "${f#ok }" ;;
+            *) printf '\033[31m❌ %s failed: %s\033[0m\n' "$name" "$(errors 1 | cut -c1-80)" ;;
+        esac
+        exit 0
+    fi
+    [ "$age" -gt 300 ] && exit 0   # stale log, build no longer running
+    p=$(progress)
+    if [ -z "$p" ]; then
+        printf '🔨 %s: starting\n' "$name"
+        exit 0
+    fi
+    read -r pct done total target <<<"$p"
+    state=${XDG_CACHE_HOME:-$HOME/.cache}/buildwatch.state
+    read -r s_log s_total s_t s_done 2>/dev/null < "$state" || true
+    if [ "${s_log:-}" != "$log" ] || [ "${s_total:-}" != "$total" ]; then
+        s_t=$now s_done=$done
+        mkdir -p "$(dirname "$state")"
+        echo "$log $total $s_t $s_done" > "$state"
+    fi
+    eta=""
+    if [ $((now - s_t)) -ge 20 ] && [ "$done" -gt "$s_done" ]; then
+        eta=" ETA $(fmt_time $(( (total - done) * (now - s_t) / (done - s_done) )))"
+    fi
+    err=$(errors 1)
+    [ -n "$err" ] && err=$' \033[31m⚠ errors\033[0m'
+    printf '🔨 %s [\033[36m%s\033[0m] %d%% %d/%d%s%s  %s\n' "$name" "$(bar "$pct")" "$pct" "$done" "$total" \
+        "$eta" "$err" "${target:0:50}"
+    ;;
 once)
     f=$(finished)
     [ -n "$f" ] && echo "build $f" || line

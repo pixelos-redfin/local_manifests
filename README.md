@@ -36,11 +36,13 @@ locked bootloader.
 `scripts/buildwatch.sh [log]` shows a live progress bar (percent, steps, ETA from
 the measured rate, current target) for a build logged with `m … > log 2>&1`;
 `--events` prints one line per 10% and on errors/finish, `--once` the current state.
-Without a log it picks the newest in `~/telegram_bot/logs` or `~/logs`.
+Without a log it picks the newest of `~/telegram_bot/logs/*.log` and `~/logs/build-*.log`.
+`--status` prints one short line (running build, or its result for 10 min) for the
+Claude Code status line: `"statusLine": {"type": "command", "command": "~/.claude/statusline.sh", "refreshInterval": 2}`.
 
 ```bash
 ln -s .repo/local_manifests/scripts/buildwatch.sh buildwatch
-m pixelos > ~/logs/build.log 2>&1 &  ./buildwatch ~/logs/build.log
+m pixelos > ~/logs/build-pixelos.log 2>&1 &  ./buildwatch ~/logs/build-pixelos.log
 ```
 
 ## Upstream check
