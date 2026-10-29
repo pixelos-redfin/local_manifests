@@ -21,6 +21,10 @@
   <remove-project name="PixelOS-AOSP/android_vendor_custom" />
   <project path="vendor/custom" name="pixelos-redfin/android_vendor_custom" remote="github" />
 
+  <!-- System update in Settings opens the PixelOS Updater -->
+  <remove-project name="PixelOS-AOSP/android_packages_apps_Settings" />
+  <project path="packages/apps/Settings" name="pixelos-redfin/android_packages_apps_Settings" remote="github" groups="pdk-fs,pdk-cw-tvc,sysui-studio" />
+
   <!-- Updater with incremental OTA support and pixelos-redfin feed -->
   <remove-project name="PixelOS-AOSP/android_packages_apps_Updater" />
   <project path="packages/apps/Updater" name="pixelos-redfin/android_packages_apps_Updater" remote="github" />
