@@ -80,12 +80,19 @@ once)
     errors 3
     ;;
 events)
-    last_step=-1 seen_err=""
+    last_step=-1 last_total="" seen_err=""
     while true; do
         f=$(finished)
         p=$(progress)
         if [ -n "$p" ]; then
-            read -r pct _ <<<"$p"
+            read -r pct _ total _ <<<"$p"
+            # soong bootstrap, kati and ninja each count their own steps
+            if [ "$total" != "$last_total" ]; then
+                last_total=$total
+                last_step=-1
+                start_t=$(date +%s)
+                start_done=""
+            fi
             step=$((pct / 10 * 10))
             if [ "$step" -gt "$last_step" ]; then
                 last_step=$step
