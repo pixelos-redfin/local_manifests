@@ -26,6 +26,9 @@ CHANGELOG=$OTA/API/updater/changelogs/redfin.md
 
 git -C "$OTA" pull -q --ff-only
 cmp -s "$LOG" "$CHANGELOG" && die "$LOG is the previous changelog, write the one for $TAG"
+for other in "$RELEASES"/*/changelog.md; do
+    [ "$other" != "$LOG" ] && cmp -s "$other" "$LOG" && die "$LOG is the changelog of $(basename "$(dirname "$other")"), write the one for $TAG"
+done
 
 NOTES=$(mktemp)
 trap 'rm -f "$NOTES"' EXIT

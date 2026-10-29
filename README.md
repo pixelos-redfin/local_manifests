@@ -20,12 +20,17 @@ ln -s .repo/local_manifests/scripts/publish_update.sh .
 ```bash
 source build/envsetup.sh
 lunch custom_redfin cp2a user
-m pixelos
-./sign_release.sh          # signed full + incremental OTA, images, factory zip, feed (incremental only)
-./upload_build.sh          # uploads releases/redfin/latest
-# write releases/redfin/latest/changelog.md (replaces the previous one)
+m pixelos && m target-files-package
+./sign_release.sh          # signed full + incremental OTA, images, factory zip, feed (incremental only),
+                           # manifest.xml snapshot and changes.md (source changes since the previous release)
+# write releases/redfin/latest/changelog.md for this release, from changes.md
+./upload_build.sh          # uploads releases/redfin/latest with its changelog
 ./publish_update.sh        # GitHub release + Updater feed + changelog
 ```
+
+Every release, OTA update or factory/full build, gets a new `changelog.md`:
+`upload_build.sh` and `publish_update.sh` refuse a missing one or one that
+another release already has.
 
 `sign_release.sh` forces vbmeta flags to 0: the device tree disables
 verification unless `WITH_AVB=true`, and such a build never boots with a

@@ -36,6 +36,9 @@ PREV=""
 [ -e "$RELEASES/latest/signed-target_files.zip" ] && PREV=$(readlink -f "$RELEASES/latest")
 mkdir -p "$DEST"
 
+# Source snapshot of this release, so the next one can list what changed.
+(cd "$TOP" && repo manifest -r -o "$DEST/manifest.xml" 2>/dev/null) || echo "warning: could not save manifest.xml"
+
 # The device tree builds vbmeta with --flags 3 (verification disabled)
 # unless WITH_AVB=true; a locked bootloader refuses that, so force 0.
 # testkey -> releasekey, platform -> platform, ... comes from -d.
@@ -95,12 +98,20 @@ fi
 
 ln -sfn "$TAG" "$RELEASES/latest"
 
+# Every release needs a new changelog (OTA and factory alike); changes.md
+# lists the source changes since the previous release to write it from.
+if [ -n "$PREV" ] && [ -f "$PREV/manifest.xml" ] && [ -f "$DEST/manifest.xml" ]; then
+    echo ">> Listing changes since $(basename "$PREV")"
+    "$(dirname "$(readlink -f "$0")")/release_changes.py" "$PREV/manifest.xml" "$DEST/manifest.xml" > "$DEST/changes.md" || true
+fi
+
 echo
 echo "Release $TAG ready in $DEST"
 ls -lh "$DEST"
 echo
+echo "Changelog: write $DEST/changelog.md (required for the upload and the OTA)${PREV:+, from changes.md}"
 if [ -n "$INC" ]; then
-    echo "Publish: write $DEST/changelog.md, then ./publish_update.sh $DEST"
+    echo "Publish: ./publish_update.sh $DEST"
 else
     echo "No previous release: nothing for the Updater feed (incremental only)."
 fi

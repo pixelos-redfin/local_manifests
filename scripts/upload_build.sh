@@ -53,6 +53,19 @@ REQUIRED_FILES=(
 # Factory image (flash-all installer) from factory/make_factory.sh, if built
 FACTORY_ZIP=$(basename "$(ls "$PRODUCT_DIR"/redfin-factory-*.zip 2>/dev/null | tail -1)" 2>/dev/null || true)
 [ -n "$FACTORY_ZIP" ] && REQUIRED_FILES+=("$FACTORY_ZIP" "$FACTORY_ZIP.sha256")
+# Every release ships its own changelog, also when only the factory image goes out
+CHANGELOG="$PRODUCT_DIR/changelog.md"
+if [ ! -s "$CHANGELOG" ]; then
+    echo "Error: write the changelog for this release to $CHANGELOG first"
+    exit 1
+fi
+for other in "$(dirname "$PRODUCT_DIR")"/*/changelog.md; do
+    if [ "$other" != "$CHANGELOG" ] && cmp -s "$other" "$CHANGELOG"; then
+        echo "Error: $CHANGELOG is the changelog of $(basename "$(dirname "$other")"), write a new one"
+        exit 1
+    fi
+done
+REQUIRED_FILES+=("changelog.md")
 # Installation guides (INSTALL_<lang>.md), if written for this release
 for g in "$PRODUCT_DIR"/INSTALL_*.md; do
     [ -f "$g" ] || continue
