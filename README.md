@@ -6,7 +6,7 @@ repo local manifests and release scripts for PixelOS on Google Pixel 5 (redfin).
 
 ```bash
 repo init -u https://github.com/PixelOS-AOSP/android_manifest.git -b seventeen --git-lfs --depth=1
-git clone git@github.com:pixelos-redfin/local_manifests.git .repo/local_manifests
+git clone https://github.com/pixelos-redfin/local_manifests.git -b seventeen .repo/local_manifests
 repo sync -c --no-tags
 # KernelSU-Next derives its version from its commit count and tags
 git -C kernel/google/redbull/KernelSU-Next fetch --unshallow --tags github
