@@ -31,6 +31,17 @@ m pixelos
 verification unless `WITH_AVB=true`, and such a build never boots with a
 locked bootloader.
 
+## Upstream check
+
+`scripts/check_upstream.sh` compares the PixelOS-AOSP forks (frameworks_base,
+vendor_custom, Updater, Settings) with upstream `seventeen` and sends the
+result to Telegram; keybox/attestation commits are flagged as "do not merge".
+Runs weekly from cron (Mondays 09:00 UTC):
+
+```
+0 9 * * 1 PATH=/usr/local/bin:/usr/bin:/bin <tree>/.repo/local_manifests/scripts/check_upstream.sh >> ~/logs/check_upstream.log 2>&1
+```
+
 ## Factory image
 
 `scripts/factory/make_factory.sh <release dir>` (run by `sign_release.sh`)
