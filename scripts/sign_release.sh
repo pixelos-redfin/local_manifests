@@ -7,9 +7,9 @@
 # release diffs against $RELEASES/latest. Never delete those or the keys.
 set -euo pipefail
 
-TOP=/serverhive2/unseenpixel/pixelos
+TOP=${TOP:-$(readlink -f "$(dirname "$(readlink -f "$0")")/../../..")}
 KEYS=${KEYS:-$HOME/.android-certs}
-RELEASES=${RELEASES:-/serverhive2/unseenpixel/releases/redfin}
+RELEASES=${RELEASES:-$HOME/releases/redfin}
 OTA_REPO_URL=https://github.com/pixelos-redfin/pixelos-ota/releases/download
 OUT=$TOP/out/target/product/redfin
 BIN=$TOP/out/host/linux-x86/bin

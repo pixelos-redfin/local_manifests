@@ -13,7 +13,7 @@ import urllib.parse
 import urllib.request
 
 ENV_FILE = os.path.expanduser("~/.config/telegram-bot.env")
-BOT_CONFIG = "/serverhive2/unseenpixel/telegram_bot/config.json"
+BOT_CONFIG = os.environ.get("BOT_CONFIG", os.path.expanduser("~/telegram_bot/config.json"))
 LIMIT = 4000
 
 

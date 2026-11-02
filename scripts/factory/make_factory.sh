@@ -8,7 +8,7 @@
 # Usage: make_factory.sh <release dir>   (e.g. $RELEASES/20261027-1820)
 set -euo pipefail
 
-TOP=/serverhive2/unseenpixel/pixelos
+TOP=${TOP:-$(readlink -f "$(dirname "$(readlink -f "$0")")/../../../..")}
 KEYS=${KEYS:-$HOME/.android-certs}
 BIN=$TOP/out/host/linux-x86/bin
 HERE=$(dirname "$(readlink -f "$0")")

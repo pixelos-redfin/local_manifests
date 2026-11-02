@@ -7,8 +7,8 @@
 # Usage: publish_update.sh [release dir]   (default: $RELEASES/latest)
 set -euo pipefail
 
-RELEASES=${RELEASES:-/serverhive2/unseenpixel/releases/redfin}
-OTA=${OTA:-/serverhive2/unseenpixel/pixelos-ota}
+RELEASES=${RELEASES:-$HOME/releases/redfin}
+OTA=${OTA:-$HOME/pixelos-ota}
 REPO=pixelos-redfin/pixelos-ota
 
 die() { echo "Error: $*" >&2; exit 1; }

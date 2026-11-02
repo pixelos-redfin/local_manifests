@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Configuration
-PRODUCT_DIR="${1:-/serverhive2/unseenpixel/releases/redfin/latest}"
+PRODUCT_DIR="${1:-${RELEASES:-$HOME/releases/redfin}/latest}"
 PRODUCT_DIR=$(readlink -f "$PRODUCT_DIR")
 GDRIVE_REMOTE="gdrive:PixelOS/redfin"
 
