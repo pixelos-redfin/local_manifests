@@ -6,9 +6,6 @@
 
   <!-- Kernel -->
   <project path="kernel/google/redbull" name="pixelos-redfin/android_kernel_google_redbull" remote="github" />
-  <!-- Full history required: the KernelSU-Next version is derived from its commit count -->
-  <project path="kernel/google/redbull/KernelSU-Next" name="KernelSU-Next/KernelSU-Next" remote="github"
-           revision="0b17f24246db5c80c056b92c15bcad2b77f1276e" upstream="legacy" dest-branch="legacy" />
 
   <!-- Vendor -->
   <project path="vendor/google/redfin" name="pixelos-redfin/proprietary_vendor_google_redfin" remote="github" />
